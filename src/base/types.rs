@@ -3,5 +3,5 @@
 
 /// Define the current type in use.
 /// 
-/// Use primitive: `Number` is used in `as` casts.
-pub type Number = f64;
+/// Use primitive: `Real` is used in `as` casts.
+pub type Real = f32;

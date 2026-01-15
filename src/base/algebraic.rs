@@ -7,8 +7,11 @@ use std::{
 };
 use float_cmp;
 
-
-use crate::base::types::Number;
+use crate::base::{ 
+	types::Real,
+	common::Shared,
+	polar, 
+};
 
 /// # Complex `Algebraic` number. 
 /// A generic type `T` and 2 arguments:
@@ -28,13 +31,13 @@ use crate::base::types::Number;
 /// - `Display`.
 #[derive(Clone, Copy)]
 pub struct Algebraic {
-	pub real: Number,
-	pub imaginary: Number
+	pub real: Real,
+	pub imaginary: Real
 }
 
 impl Algebraic {
 	/// Instantiate a new `Algebraic` complex number.
-	pub fn new(real: Number, imaginary: Number) -> Algebraic {
+	pub fn new(real: Real, imaginary: Real) -> Algebraic {
 		Algebraic {
 			real,
 			imaginary,
@@ -45,39 +48,46 @@ impl Algebraic {
 	pub fn conjugate(self: &Self) -> Algebraic {
 		Algebraic { 
 			real: self.real, 
-			imaginary: (-1 as Number) * self.imaginary 
+			imaginary: -1.0 * self.imaginary 
 		}
 	}
 
-	/// Return the module, the absolute value, or the distance from 0.
-	pub fn absolute(self: &Self) -> Number {
-		Number::sqrt(self.real * self.real + self.imaginary * self.imaginary)
+	/// Convert an `Algebraic` to a new `Polar`.
+	pub fn to_polar(self: &Self) -> polar::Polar {
+		polar::Polar { 
+			theta: self.argument(), 
+			distance: self.absolute(), 
+	  	}
+	}
+}
+
+impl Shared for Algebraic {
+	fn absolute(self: &Self) -> Real {
+		Real::sqrt(self.real * self.real + self.imaginary * self.imaginary)
 	}
 
-	/// Get the `argument` _theta_, smallest directed angle from _x_ to `self`.  
-	pub fn argument(self: &Self) -> Number {
-		Number::acos(self.real / self.absolute()) * self.imaginary.signum()
+	fn argument(self: &Self) -> Real {
+		Real::acos(self.real / self.absolute()) * self.imaginary.signum()
 	}
-
-	/// Check if the complex number is 0 + 0i = 0.
-	pub fn is_zero(self: &Self) -> bool {
-		self.real == 0 as Number && self.imaginary == 0 as Number
+	
+	fn is_zero(self: &Self) -> bool {
+		self.real == 0.0 && self.imaginary == 0.0
 	}
 }
 
 impl Default for Algebraic {
 	fn default() -> Self {
 		Algebraic { 
-			real: 0 as Number, 
-			imaginary: 0 as Number 
+			real: 0 as Real, 
+			imaginary: 0 as Real 
 		}
 	}
 }
 
 impl PartialEq for Algebraic {
 	fn eq(self: &Self, other: &Self) -> bool {
-		float_cmp::approx_eq!(Number, self.real, other.real, ulps = 2)
-		&& float_cmp::approx_eq!(Number, self.imaginary, other.imaginary, ulps = 2)
+		float_cmp::approx_eq!(Real, self.real, other.real, ulps = 2)
+		&& float_cmp::approx_eq!(Real, self.imaginary, other.imaginary, ulps = 2)
 	}
 }
 
@@ -108,8 +118,8 @@ impl ops::Neg for Algebraic {
 
 	fn neg(self: Self) -> Self::Output {
 		Algebraic {
-			real: - self.real,
-			imaginary: - self.imaginary,
+			real: -self.real,
+			imaginary: -self.imaginary,
 		}
 	}
 }
@@ -129,7 +139,7 @@ impl ops::Div for Algebraic {
 	type Output = Self;
 
 	fn div(self: Self, other: Self) -> Self::Output {
-		let denominator: Number = other.real * other.real + other.imaginary * other.imaginary;
+		let denominator: Real = other.real * other.real + other.imaginary * other.imaginary;
 		Algebraic {
 			real: (self.real * other.real + self.imaginary * other.imaginary) / denominator,
 			imaginary: (self.imaginary * other.real - self.real * other.imaginary) / denominator,
