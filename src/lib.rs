@@ -9,7 +9,6 @@ pub use crate::base::{
     common::Shared,
     types::Real,
     algebraic::Algebraic,
-
 };
 
 

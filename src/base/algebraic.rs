@@ -59,6 +59,18 @@ impl Algebraic {
 			distance: self.absolute(), 
 	  	}
 	}
+
+	/// Raise it`self` to `e` (Euler's number).
+	/// ```math
+	/// e ^ (self)
+	/// ```
+	/// Returns a `Polar`.
+	pub fn exp(self: &Self) -> polar::Polar {
+		polar::Polar { 
+			theta: self.imaginary, 
+			distance: self.real.exp(),
+		}
+	}
 }
 
 impl Shared for Algebraic {

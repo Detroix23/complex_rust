@@ -38,9 +38,9 @@ impl Polar {
 
 	/// Returns a `String` formatted the trigonometric way.
 	/// 
-	/// _Ex:_ `6(cos(1.23) + isin(1.23)`
+	/// _Ex:_ `6(cos(1.23) + isin(1.23))`
 	pub fn trigonometric(self: &Self) -> String {
-		format!("{}(cos({}) + isin({})", self.distance, self.theta, self.theta)
+		format!("{}(cos({}) + isin({}))", self.distance, self.theta, self.theta)
 	}
 
 	/// Returns a `String` formatted the exponential way.
