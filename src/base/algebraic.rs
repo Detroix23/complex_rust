@@ -52,6 +52,14 @@ impl Algebraic {
 		}
 	}
 
+	/// Compute the distance between `self` and `other`.
+	pub fn distance_to(self: &Self, other: Algebraic) -> Real {
+		Real::sqrt(
+			(other.real - self.real) * (other.real - self.real)
+			+ (other.imaginary - self.imaginary) * (other.imaginary - self.imaginary)
+		)
+	}
+
 	/// Convert an `Algebraic` to a new `Polar`.
 	pub fn to_polar(self: &Self) -> polar::Polar {
 		polar::Polar { 
@@ -97,6 +105,9 @@ impl Default for Algebraic {
 }
 
 impl PartialEq for Algebraic {
+	/// Tests for self and other values to be equal, and is used by ==.
+	/// 
+	/// Because of `Real`s being `float`, comparison is using `float_cmp::approx_eq!`.
 	fn eq(self: &Self, other: &Self) -> bool {
 		float_cmp::approx_eq!(Real, self.real, other.real, ulps = 2)
 		&& float_cmp::approx_eq!(Real, self.imaginary, other.imaginary, ulps = 2)
