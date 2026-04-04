@@ -13,8 +13,16 @@ pub trait Shared {
 	/// 
 	/// Return |z|, the module, the distance from 0, in other words.
 	/// 
-	/// Computed using a simple euclidean distance a² + b², or explicit with `Polar`. 
+	/// Computed using a simple euclidean distance √(a² + b²), or explicit with `Polar`. 
 	fn absolute(self: &Self) -> Real;
+
+	/// Absolute value squared of the complex number. Result not square rooted for faster comparisons.
+	/// 
+	/// Return |z|², the module, the distance from 0, in other words.
+	/// 
+	/// Computed using a simple euclidean distance a² + b², or explicit with `Polar`.
+	fn absolute_squared(self: &Self) -> Real;
+
 	/// Get the `argument` theta **θ**, an angle in **radians**.
 	/// 
 	/// It is smallest directed angle from the _x+_ axis to `self`.

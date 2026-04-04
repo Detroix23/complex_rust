@@ -60,6 +60,12 @@ impl Algebraic {
 		)
 	}
 
+	/// Compute the distance squared between `self` and `other`.
+	pub fn distance_to_squared(self: &Self, other: Algebraic) -> Real {
+		(other.real - self.real) * (other.real - self.real)
+		+ (other.imaginary - self.imaginary) * (other.imaginary - self.imaginary)
+	}
+
 	/// Convert an `Algebraic` to a new `Polar`.
 	pub fn to_polar(self: &Self) -> polar::Polar {
 		polar::Polar { 
@@ -84,6 +90,10 @@ impl Algebraic {
 impl Shared for Algebraic {
 	fn absolute(self: &Self) -> Real {
 		Real::sqrt(self.real * self.real + self.imaginary * self.imaginary)
+	}
+
+	fn absolute_squared(self: &Self) -> Real {
+		self.real * self.real + self.imaginary * self.imaginary
 	}
 
 	fn argument(self: &Self) -> Real {

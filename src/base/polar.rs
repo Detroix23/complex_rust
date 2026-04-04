@@ -76,6 +76,10 @@ impl Shared for Polar {
 		self.distance
 	}
 
+	fn absolute_squared(self: &Self) -> Real {
+		self.distance * self.distance
+	}
+
 	fn argument(self: &Self) -> Real {
 		self.theta
 	}
