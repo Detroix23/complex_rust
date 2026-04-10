@@ -5,11 +5,10 @@
 
 mod base;
 
-pub use crate::base::{
-    common::Shared,
-    types::Real,
-    algebraic::Algebraic,
-};
+pub use crate::base::defaults::Real;
+pub use crate::base::common::Complex;
+pub use crate::base::algebraic::Algebraic;
+pub use crate::base::polar::Polar;
 
 
 #[cfg(test)]

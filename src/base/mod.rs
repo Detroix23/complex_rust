@@ -3,7 +3,8 @@
 //! 
 //! Base modules to define a complex number.
 
-pub mod types;
+pub mod defaults;
 pub mod common;
 pub mod algebraic;
 pub mod polar;
+

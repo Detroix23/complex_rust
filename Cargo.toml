@@ -1,6 +1,6 @@
 [package]
-name = "complex_rust"
-version = "0.0.1"
+name = "complex"
+version = "0.0.3"
 edition = "2024"
 
 [dependencies]

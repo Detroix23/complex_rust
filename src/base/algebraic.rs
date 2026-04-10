@@ -7,11 +7,9 @@ use std::{
 };
 use float_cmp;
 
-use crate::base::{ 
-	types::Real,
-	common::Shared,
-	polar, 
-};
+use crate::base::defaults::{self, Real};
+use crate::base::common::{Number, Complex, ToComplex};
+use crate::base::polar;
 
 /// # Complex `Algebraic` number. 
 /// A generic type `T` and 2 arguments:
@@ -37,6 +35,7 @@ pub struct Algebraic {
 
 impl Algebraic {
 	/// Instantiate a new `Algebraic` complex number.
+	#[inline]
 	pub fn new(real: Real, imaginary: Real) -> Algebraic {
 		Algebraic {
 			real,
@@ -45,6 +44,7 @@ impl Algebraic {
 	}
 
 	/// Create a new conjugate complex.
+	#[inline]
 	pub fn conjugate(self: &Self) -> Algebraic {
 		Algebraic { 
 			real: self.real, 
@@ -53,6 +53,7 @@ impl Algebraic {
 	}
 
 	/// Compute the distance between `self` and `other`.
+	#[inline]
 	pub fn distance_to(self: &Self, other: Algebraic) -> Real {
 		Real::sqrt(
 			(other.real - self.real) * (other.real - self.real)
@@ -61,24 +62,18 @@ impl Algebraic {
 	}
 
 	/// Compute the distance squared between `self` and `other`.
+	#[inline]
 	pub fn distance_to_squared(self: &Self, other: Algebraic) -> Real {
 		(other.real - self.real) * (other.real - self.real)
 		+ (other.imaginary - self.imaginary) * (other.imaginary - self.imaginary)
 	}
 
-	/// Convert an `Algebraic` to a new `Polar`.
-	pub fn to_polar(self: &Self) -> polar::Polar {
-		polar::Polar { 
-			theta: self.argument(), 
-			distance: self.absolute(), 
-	  	}
-	}
-
 	/// Raise it`self` to `e` (Euler's number).
-	/// ```math
+	/// ```rust, ignore
 	/// e ^ (self)
 	/// ```
 	/// Returns a `Polar`.
+	#[inline]
 	pub fn exp(self: &Self) -> polar::Polar {
 		polar::Polar { 
 			theta: self.imaginary, 
@@ -87,61 +82,115 @@ impl Algebraic {
 	}
 }
 
-impl Shared for Algebraic {
+impl Number for Algebraic {}
+
+impl Complex for Algebraic {
+	#[inline]
+	fn real(self: &Self) -> Real {
+		self.real
+	}
+
+	#[inline]
+	fn imaginary(self: &Self) -> Real {
+		self.imaginary
+	}
+
+	#[inline]
 	fn absolute(self: &Self) -> Real {
 		Real::sqrt(self.real * self.real + self.imaginary * self.imaginary)
 	}
 
+	#[inline]
 	fn absolute_squared(self: &Self) -> Real {
 		self.real * self.real + self.imaginary * self.imaginary
 	}
 
+	#[inline]
 	fn argument(self: &Self) -> Real {
 		Real::acos(self.real / self.absolute()) * self.imaginary.signum()
 	}
 	
 	fn is_zero(self: &Self) -> bool {
-		self.real == 0.0 && self.imaginary == 0.0
+		float_cmp::approx_eq!(Real, self.real, 0.0, ulps = defaults::ULPS) 
+		&& float_cmp::approx_eq!(Real, self.imaginary, 0.0, ulps = defaults::ULPS) 
 	}
 }
 
 impl Default for Algebraic {
+	#[inline]
 	fn default() -> Self {
-		Algebraic { 
-			real: 0 as Real, 
-			imaginary: 0 as Real 
-		}
+		Algebraic::new( 
+			0 as Real, 
+			0 as Real 
+		)
 	}
 }
 
-impl PartialEq for Algebraic {
-	/// Tests for self and other values to be equal, and is used by ==.
+impl<C> PartialEq<C> for Algebraic 
+where C: Complex
+{
+	/// Tests for self and other values to be equal, and is used by `==`.
 	/// 
-	/// Because of `Real`s being `float`, comparison is using `float_cmp::approx_eq!`.
-	fn eq(self: &Self, other: &Self) -> bool {
-		float_cmp::approx_eq!(Real, self.real, other.real, ulps = 2)
-		&& float_cmp::approx_eq!(Real, self.imaginary, other.imaginary, ulps = 2)
+	/// Because of `Real`s being `float`, comparison is using `float_cmp`.
+	fn eq(self: &Self, other: &C) -> bool {
+		float_cmp::approx_eq!(Real, self.real(), other.real(), ulps = defaults::ULPS)
+		&& float_cmp::approx_eq!(Real, self.imaginary(), other.imaginary(), ulps = defaults::ULPS)
 	}
 }
 
-impl ops::Add for Algebraic {
+impl<C> ops::Add<C> for Algebraic 
+where C: Complex
+{
 	type Output = Self;
 
-	fn add(self: Self, other: Self) -> Self::Output {
+	#[inline]
+	fn add(self: Self, other: C) -> Self::Output {
+		Algebraic::new(
+			self.real() + other.real(),
+			self.imaginary() + other.imaginary(),
+		)
+	}
+}
+
+impl<C> ops::Sub<C> for Algebraic 
+where C: Complex
+{
+	type Output = Self;
+
+	#[inline]
+	fn sub(self: Self, other: C) -> Self::Output {
 		Algebraic {
-			real: self.real + other.real,
-			imaginary: self.imaginary + other.imaginary,
+			real: self.real() - other.real(),
+			imaginary: self.imaginary() - other.imaginary(),
 		}
 	}
 }
 
-impl ops::Sub for Algebraic {
+impl<C> ops::Mul<C> for Algebraic 
+where C: Complex
+{
 	type Output = Self;
 
-	fn sub(self: Self, other: Self) -> Self::Output {
+	#[inline]
+	fn mul(self: Self, other: C) -> Self::Output {
 		Algebraic {
-			real: self.real - other.real,
-			imaginary: self.imaginary - other.imaginary,
+			real: self.real() * other.real() - self.imaginary() * other.imaginary(),
+			imaginary: self.real() * other.imaginary() + other.real() * self.imaginary(),
+		}
+	}
+}
+
+impl<C> ops::Div<C> for Algebraic 
+where C: Complex
+{
+	type Output = Self;
+
+	#[inline]
+	fn div(self: Self, other: C) -> Self::Output {
+		let denominator: Real = other.real() * other.real() + other.imaginary() * other.imaginary();
+		Algebraic {
+			real: (self.real() * other.real() + self.imaginary() * other.imaginary()) / denominator,
+			imaginary: (self.imaginary() * other.real() - self.real() * other.imaginary()) / denominator,
 		}
 	}
 }
@@ -149,33 +198,11 @@ impl ops::Sub for Algebraic {
 impl ops::Neg for Algebraic {
 	type Output = Self;
 
+	#[inline]
 	fn neg(self: Self) -> Self::Output {
 		Algebraic {
 			real: -self.real,
 			imaginary: -self.imaginary,
-		}
-	}
-}
-
-impl ops::Mul for Algebraic {
-	type Output = Self;
-
-	fn mul(self: Self, other: Self) -> Self::Output {
-		Algebraic {
-			real: self.real * other.real - self.imaginary * other.imaginary,
-			imaginary: self.real * other.imaginary + other.real * self.imaginary,
-		}
-	}
-}
-
-impl ops::Div for Algebraic {
-	type Output = Self;
-
-	fn div(self: Self, other: Self) -> Self::Output {
-		let denominator: Real = other.real * other.real + other.imaginary * other.imaginary;
-		Algebraic {
-			real: (self.real * other.real + self.imaginary * other.imaginary) / denominator,
-			imaginary: (self.imaginary * other.real - self.real * other.imaginary) / denominator,
 		}
 	}
 }
@@ -196,5 +223,24 @@ impl fmt::Display for Algebraic {
 		} else {
 			write!(formatter, "{} - {}i", self.real, self.imaginary.abs())
 		}
+	}
+}
+
+impl ToComplex for Algebraic {
+	/// Create an `Algebraic` instance from `Self`.
+	/// 
+	/// As `Self` is already `Algebraic`, **clones it**.
+	#[inline]
+	fn to_algebraic(self: &Self) -> self::Algebraic {
+		self.clone()
+	}
+
+	/// Create a `Polar` instance from `Algebraic`.
+	#[inline]
+	fn to_polar(self: &Self) -> polar::Polar {
+		polar::Polar { 
+			theta: self.argument(), 
+			distance: self.absolute(), 
+	  	}
 	}
 }
