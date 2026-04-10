@@ -2,6 +2,11 @@
 name = "complex"
 version = "0.0.3"
 edition = "2024"
+description = "A custom made library, only in Rust, to compute complex numbers of all sorts."
+authors = ["Detroix23"]
+readme = "README.md"
+license = "LICENSE.md"
+repository = "https://github.com/Detroix23/complex_rust"
 
 [dependencies]
 float-cmp = "0.10.0"
