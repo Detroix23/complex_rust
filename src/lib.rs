@@ -3,13 +3,12 @@
 //! 
 //! A simple create to use and compute complex numbers.
 
-mod base;
+pub mod base;
 
 pub use crate::base::defaults::Real;
-pub use crate::base::common::Complex;
+pub use crate::base::common::{Number, Complex, ToComplex};
 pub use crate::base::algebraic::Algebraic;
 pub use crate::base::polar::Polar;
-
 
 #[cfg(test)]
 mod tests {
