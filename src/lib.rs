@@ -4,6 +4,7 @@
 //! A simple create to use and compute complex numbers.
 
 pub mod base;
+pub mod operations;
 
 pub use crate::base::defaults::Real;
 pub use crate::base::common::{Number, Complex, ToComplex};

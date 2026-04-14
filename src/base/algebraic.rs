@@ -29,7 +29,9 @@ use crate::base::polar;
 /// - `Display`.
 #[derive(Clone, Copy)]
 pub struct Algebraic {
+	/// `real` part of the `Algebraic` **structure**.
 	pub real: Real,
+	/// `imaginary` part of the `Algebraic` **structure**.
 	pub imaginary: Real
 }
 
@@ -67,22 +69,11 @@ impl Algebraic {
 		(other.real - self.real) * (other.real - self.real)
 		+ (other.imaginary - self.imaginary) * (other.imaginary - self.imaginary)
 	}
-
-	/// Raise it`self` to `e` (Euler's number).
-	/// ```rust, ignore
-	/// e ^ (self)
-	/// ```
-	/// Returns a `Polar`.
-	#[inline]
-	pub fn exp(self: &Self) -> polar::Polar {
-		polar::Polar { 
-			theta: self.imaginary, 
-			distance: self.real.exp(),
-		}
-	}
 }
 
-impl Number for Algebraic {}
+impl<C> Number<C> for Algebraic 
+where C: Complex
+{}
 
 impl Complex for Algebraic {
 	#[inline]
@@ -113,6 +104,14 @@ impl Complex for Algebraic {
 	fn is_zero(self: &Self) -> bool {
 		float_cmp::approx_eq!(Real, self.real, 0.0, ulps = defaults::ULPS) 
 		&& float_cmp::approx_eq!(Real, self.imaginary, 0.0, ulps = defaults::ULPS) 
+	}
+
+	#[inline]
+	fn real_multiplication(self: &Self, x: Real) -> Self {
+		Algebraic::new(
+			self.real() * x,
+			self.imaginary() * x,
+		)
 	}
 }
 

@@ -58,23 +58,11 @@ impl Polar {
 	pub fn exponential(self: &Self) -> String {
 		format!("{}e ^ ({}i)", self.distance, self.theta)
 	}
-
-	/// Raise `self` to the power of `exponent`, using exponential proprieties.
-	/// ```maths, ignore
-	///   (r * e^(θi))^x 
-	/// = r^n * e^(x * θ * i)
-	/// ```
-	/// Creates and returns a new `Polar` instance.
-	#[inline]
-	pub fn power(self: &Self, exponent: Real) -> Polar {
-		Polar { 
-			theta: self.theta * exponent as Real, 
-			distance: self.distance.powf(exponent),
-		}
-	}
 }
 
-impl Number for Polar {}
+impl<C> Number<C> for Polar 
+where C: Complex
+{}
 
 impl Complex for Polar {
 	#[inline]
@@ -104,6 +92,14 @@ impl Complex for Polar {
 
 	fn is_zero(self: &Self) -> bool {
 		float_cmp::approx_eq!(Real, self.distance, 0.0, ulps = defaults::ULPS)
+	}
+
+	#[inline]
+	fn real_multiplication(self: &Self, x: Real) -> Self {
+		Polar::new(
+			self.argument(),
+			self.absolute() * x,
+		)
 	}
 }
 

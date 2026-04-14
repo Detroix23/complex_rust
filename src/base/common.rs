@@ -16,14 +16,15 @@ use crate::base::{algebraic, polar};
 /// - `Sub`;
 /// - `Div`;
 /// - `PartialEq`;
-pub trait Number: 
+pub trait Number<C>: 
 	Sized
- 	+ ops::Add 
-	+ ops::Mul 
-	+ ops::Sub 
-	+ ops::Div 
+ 	+ ops::Add<C>
+	+ ops::Mul<C> 
+	+ ops::Sub<C> 
+	+ ops::Div<C> 
 	+ ops::Neg
 	+ PartialEq 
+where C: Complex
 {}
 
 /// # Shared `Complex` proprieties.
@@ -36,7 +37,8 @@ pub trait Number:
 /// - `Display`;
 pub trait Complex:
 	Sized
-	+ Number
+	+ Number<Self>
+	+ ToComplex
 	+ Default
 	+ fmt::Debug
 	+ fmt::Display
@@ -70,16 +72,55 @@ pub trait Complex:
 	/// - `Algebraic`: 0 + 0i = 0;
 	/// - `Polar`: |z| = 0;
 	fn is_zero(self: &Self) -> bool;
+
+	/// Multiply it`self` by a `Real` `x`.
+	fn real_multiplication(self: &Self, x: Real) -> Self;
 } 
 
 /// # Parsing `ToComplex`s and between.
 /// Allow transfers:
 /// - `to_algebraic`;
 /// - `to_polar`;
-pub trait ToComplex: Complex {
+pub trait ToComplex {
 	/// Create an `Algebraic` instance from `Self`.
 	fn to_algebraic(self: &Self) -> algebraic::Algebraic;
 
 	/// Create a `Polar` instance from `Self`.
 	fn to_polar(self: &Self) -> polar::Polar;
 }
+
+/*
+impl<C> Number<C> for Real 
+where C: Complex
+{}
+
+impl Complex for Real {
+	fn real(self: &Self) -> Real {
+		*self
+	}
+
+	fn imaginary(self: &Self) -> Real {
+		0 as Real
+	}
+
+	fn absolute(self: &Self) -> Real {
+		self.abs()
+	}
+
+	fn absolute_squared(self: &Self) -> Real {
+		self.powi(2)
+	}
+
+	fn argument(self: &Self) -> Real {
+		if *self >= 0 as Real {
+			0 as Real
+		} else {
+			std::f64::consts::PI
+		}
+	}
+
+	fn is_zero(self: &Self) -> bool {
+		*self == 0 as Real
+	}
+}
+*/
