@@ -18,6 +18,7 @@ use crate::base::{algebraic, polar};
 /// - `PartialEq`;
 pub trait Number<C>: 
 	Sized
+	+ Copy
  	+ ops::Add<C>
 	+ ops::Mul<C> 
 	+ ops::Sub<C> 
@@ -49,14 +50,14 @@ pub trait Complex:
 	/// Get the coefficient of the imaginary part.
 	fn imaginary(self: &Self) -> Real;
 
-	/// Absolute value of the complex number.
+	/// Absolute value of the `Complex` number.
 	/// 
-	/// Return |z|, the module, the distance from 0, in other words.
+	/// Return |z| >= 0, the module, the distance from 0, in other words.
 	/// 
 	/// Computed using a simple euclidean distance √(a² + b²), or explicit with `Polar`. 
 	fn absolute(self: &Self) -> Real;
 
-	/// Absolute value squared of the complex number. Result not square rooted for faster comparisons.
+	/// Absolute value squared of the `Complex` number. Result not square rooted for faster comparisons.
 	/// 
 	/// Return |z|², the module, the distance from 0, in other words.
 	/// 
@@ -68,13 +69,13 @@ pub trait Complex:
 	/// It is smallest directed angle from the _x+_ axis to `self`.
 	fn argument(self: &Self) -> Real;
 	
-	/// Check if the complex number is zero. In different forms, for z:
+	/// Check if the `Complex` number is zero. In different forms, for z:
 	/// - `Algebraic`: 0 + 0i = 0;
 	/// - `Polar`: |z| = 0;
 	fn is_zero(self: &Self) -> bool;
 
 	/// Multiply it`self` by a `Real` `x`.
-	fn real_multiplication(self: &Self, x: Real) -> Self;
+	fn factor(self: &Self, x: Real) -> Self;
 } 
 
 /// # Parsing `ToComplex`s and between.
@@ -90,6 +91,7 @@ pub trait ToComplex {
 }
 
 /*
+// Useless implementation of `Number` to the `Real`s.
 impl<C> Number<C> for Real 
 where C: Complex
 {}
@@ -115,7 +117,7 @@ impl Complex for Real {
 		if *self >= 0 as Real {
 			0 as Real
 		} else {
-			std::f64::consts::PI
+			PI
 		}
 	}
 

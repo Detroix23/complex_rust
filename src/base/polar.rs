@@ -5,8 +5,8 @@ use std::{fmt, ops};
 
 use float_cmp;
 
+use crate::base::defaults::{self, Real, PI};
 use crate::base::common::{Number, Complex, ToComplex}; 
-use crate::base::defaults::{self, Real};
 use crate::base::algebraic;
 
 /// # `Polar` complex number form.
@@ -26,11 +26,19 @@ pub struct Polar {
 
 impl Polar {
 	/// Instantiate a new `Polar` complex.
+	/// 
+	/// If `distance` is negative, subtract π to `theta` and take the absolute of `distance`.
 	#[inline]
 	pub fn new(theta: Real, distance: Real) -> Polar {
-		Polar { 
-			theta, 
-			distance 
+		let theta_in: Real = if distance < 0.0 {
+			theta - PI
+		} else {
+			theta
+		};
+
+		Polar {
+			theta: theta_in, 
+			distance: distance.abs() 
 		}
 	}
 
@@ -77,7 +85,7 @@ impl Complex for Polar {
 
 	#[inline]
 	fn absolute(self: &Self) -> Real {
-		self.distance
+		self.distance.abs()
 	}
 
 	#[inline]
@@ -95,10 +103,10 @@ impl Complex for Polar {
 	}
 
 	#[inline]
-	fn real_multiplication(self: &Self, x: Real) -> Self {
+	fn factor(self: &Self, x: Real) -> Self {
 		Polar::new(
 			self.argument(),
-			self.absolute() * x,
+			self.distance * x,
 		)
 	}
 }

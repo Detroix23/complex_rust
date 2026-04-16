@@ -98,7 +98,11 @@ impl Complex for Algebraic {
 
 	#[inline]
 	fn argument(self: &Self) -> Real {
-		Real::acos(self.real / self.absolute()) * self.imaginary.signum()
+		if float_cmp::approx_eq!(Real, self.absolute(), 0.0, ulps = defaults::ULPS) {
+			Real::NAN
+		} else {
+			Real::acos(self.real / self.absolute()) * self.imaginary.signum()
+		}
 	}
 	
 	fn is_zero(self: &Self) -> bool {
@@ -107,7 +111,7 @@ impl Complex for Algebraic {
 	}
 
 	#[inline]
-	fn real_multiplication(self: &Self, x: Real) -> Self {
+	fn factor(self: &Self, x: Real) -> Self {
 		Algebraic::new(
 			self.real() * x,
 			self.imaginary() * x,
