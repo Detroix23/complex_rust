@@ -83,13 +83,11 @@ impl Trigonometry for Algebraic {
 
 	fn sin(self: &Self) -> Self::SineResult {
 		let z_i: Algebraic = *self * I;
-		println!("(?) sin({}): {}, {}", self, z_i.to_exp(), (-z_i).to_exp());
 		(z_i.to_exp() - (-z_i).to_exp()) / Algebraic::new(0.0, 2.0)
 	}
 
 	fn cos(self: &Self) -> Self::CosineResult {
 		let z_i: Algebraic = *self * I;
-		println!("(?) cos({}): {}, {}", self, z_i.to_exp(), (-z_i).to_exp());
 		(z_i.to_exp() + (-z_i).to_exp()) / Algebraic::new(2.0, 0.0)
 	}
 
