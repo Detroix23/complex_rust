@@ -1,12 +1,13 @@
 //! # Complex numbers.
 //! src/base/polar.rs
 
+use std::ops::Rem;
 use std::{fmt, ops};
 
 use float_cmp;
 
-use crate::base::defaults::{self, Real, PI};
-use crate::base::common::{Number, Complex, ToComplex}; 
+use crate::base::defaults::{self, Real, PI, PI2};
+use crate::base::common::{ZERO_POLAR, Number, Complex, ToComplex, Complexes}; 
 use crate::base::algebraic;
 
 /// # `Polar` complex number form.
@@ -73,6 +74,8 @@ where C: Complex
 {}
 
 impl Complex for Polar {
+	const TYPE: Complexes = Complexes::POLAR;
+
 	#[inline]
 	fn real(self: &Self) -> Real {
 		self.distance * self.theta.cos()
@@ -95,11 +98,27 @@ impl Complex for Polar {
 
 	#[inline]
 	fn argument(self: &Self) -> Real {
-		self.theta
+		let theta: f64 = self.theta.rem(PI2);
+		if self.distance < 0.0 {
+			theta - PI
+		} else {
+			theta
+		}
 	}
 
 	fn is_zero(self: &Self) -> bool {
 		float_cmp::approx_eq!(Real, self.distance, 0.0, ulps = defaults::ULPS)
+	}
+
+	fn is_pure_real(self: &Self) -> bool {
+		float_cmp::approx_eq!(Real, self.argument(), 0.0, ulps = defaults::ULPS)
+		|| float_cmp::approx_eq!(Real, self.argument(), PI, ulps = defaults::ULPS)
+		|| float_cmp::approx_eq!(Real, self.argument(), -PI, ulps = defaults::ULPS)
+	}
+
+	fn is_pure_imaginary(self: &Self) -> bool {
+		float_cmp::approx_eq!(Real, self.argument(), PI / 2.0, ulps = defaults::ULPS)
+		|| float_cmp::approx_eq!(Real, self.argument(), -PI / 2.0, ulps = defaults::ULPS)
 	}
 
 	#[inline]
@@ -109,6 +128,20 @@ impl Complex for Polar {
 			self.distance * x,
 		)
 	}
+
+	fn are_opposed<C>(self: &Self, other: C) -> bool
+	where C: Complex 
+	{
+		(
+			!float_cmp::approx_eq!(Real, self.argument(), 0.0)
+			&& float_cmp::approx_eq!(Real, self.absolute(), other.absolute(), ulps = defaults::ULPS) 
+			&& float_cmp::approx_eq!(Real, self.argument(), -other.argument(), ulps = defaults::ULPS)
+		) 
+		|| (
+			float_cmp::approx_eq!(Real, self.absolute(), -other.absolute(), ulps = defaults::ULPS) 
+			&& float_cmp::approx_eq!(Real, self.argument(), other.argument(), ulps = defaults::ULPS)
+		)	
+	}
 }
 
 impl Default for Polar {
@@ -117,13 +150,32 @@ impl Default for Polar {
 	}
 }
 
-impl PartialEq for Polar {
+impl<C> PartialEq<C> for Polar 
+where C: Complex,
+{
 	/// Tests for self and other values to be equal, and is used by `==`.
 	/// 
 	/// Because of `Real`s being `float`, comparison is using `float_cmp`.
-	fn eq(self: &Self, other: &Self) -> bool {
-		float_cmp::approx_eq!(Real, self.distance, other.distance, ulps = defaults::ULPS)
-		&& float_cmp::approx_eq!(Real, self.theta, other.theta, ulps = defaults::ULPS)
+	fn eq(self: &Self, other: &C) -> bool {
+		if float_cmp::approx_eq!(Real, self.absolute(), 0.0, ulps = defaults::ULPS) 
+			&& float_cmp::approx_eq!(Real, other.absolute(), 0.0, ulps = defaults::ULPS) 
+		{
+			true
+		} else {
+			let theta1: f64 = if self.argument() >= 0.0 {
+				self.argument()
+			} else {
+				self.argument().abs() + 2.0 * (PI + self.argument())
+			};
+			let theta2: f64 = if other.argument() >= 0.0 {
+				other.argument()
+			} else {
+				other.argument().abs() + 2.0 * (PI + other.argument())
+			};
+
+			float_cmp::approx_eq!(Real, self.absolute(), other.absolute(), ulps = defaults::ULPS)
+			&& float_cmp::approx_eq!(Real, theta1, theta2, ulps = defaults::ULPS)
+		}
 	}
 }
 
@@ -136,10 +188,16 @@ where C: Complex,
 	/// 
 	/// As `Polar` additions, as is, are not practical, we do an `Algebraic` addition. 
 	fn add(self: Self, other: C) -> Self::Output {
-		algebraic::Algebraic::new(
-			self.real() + other.real(),
-			self.imaginary() + other.imaginary()
-		).to_polar()
+		if self == other {
+			self.factor(2.0)
+		} else if self.are_opposed(other) {
+			ZERO_POLAR
+		} else {
+			algebraic::Algebraic::new(
+				self.real() + other.real(),
+				self.imaginary() + other.imaginary()
+			).to_polar()
+		}
 	}
 }
 
@@ -150,10 +208,16 @@ where C: Complex
 	type Output = Self;
 
 	fn sub(self: Self, other: C) -> Self::Output {
-		algebraic::Algebraic::new(
-			self.real() + other.real(),
-			self.imaginary() + other.imaginary()
-		).to_polar()
+		if self == other {
+			ZERO_POLAR
+		} else if self.are_opposed(other) {
+			self.factor(2.0)
+		} else {
+			algebraic::Algebraic::new(
+				self.real() - other.real(),
+				self.imaginary() - other.imaginary()
+			).to_polar()
+		}
 	}
 }
 
@@ -173,6 +237,7 @@ where C: Complex
 	/// ```maths, ignore
 	/// z1 * z2 = z1 * z2 * e ^ i(θ1 + θ2)
 	/// ```
+	#[inline]
 	fn mul(self: Self, other: C) -> Self::Output {
 		Polar {
 			distance: self.absolute() * other.absolute(),
@@ -208,6 +273,7 @@ where C: Complex
 impl ops::Neg for Polar {
 	type Output = Self;
 
+	#[inline]
 	fn neg(self: Self) -> Self::Output {
 		Polar {
 			distance: -self.distance,

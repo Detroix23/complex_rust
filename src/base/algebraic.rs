@@ -8,7 +8,7 @@ use std::{
 use float_cmp;
 
 use crate::base::defaults::{self, Real};
-use crate::base::common::{Number, Complex, ToComplex};
+use crate::base::common::{Number, Complex, ToComplex, Complexes};
 use crate::base::polar;
 
 /// # Complex `Algebraic` number. 
@@ -76,6 +76,8 @@ where C: Complex
 {}
 
 impl Complex for Algebraic {
+	const TYPE: Complexes = Complexes::ALGEBRAIC;
+
 	#[inline]
 	fn real(self: &Self) -> Real {
 		self.real
@@ -110,12 +112,27 @@ impl Complex for Algebraic {
 		&& float_cmp::approx_eq!(Real, self.imaginary, 0.0, ulps = defaults::ULPS) 
 	}
 
+	fn is_pure_real(self: &Self) -> bool {
+		float_cmp::approx_eq!(Real, self.imaginary, 0.0, ulps = defaults::ULPS) 
+	}
+
+	fn is_pure_imaginary(self: &Self) -> bool {
+		float_cmp::approx_eq!(Real, self.real, 0.0, ulps = defaults::ULPS) 
+	}
+
 	#[inline]
 	fn factor(self: &Self, x: Real) -> Self {
 		Algebraic::new(
 			self.real() * x,
 			self.imaginary() * x,
 		)
+	}
+
+	fn are_opposed<C>(self: &Self, other: C) -> bool
+	where C: Complex 
+	{
+		float_cmp::approx_eq!(Real, self.imaginary(), -other.imaginary())
+		&& float_cmp::approx_eq!(Real, self.real(), -other.real())
 	}
 }
 
@@ -190,10 +207,22 @@ where C: Complex
 
 	#[inline]
 	fn div(self: Self, other: C) -> Self::Output {
-		let denominator: Real = other.real() * other.real() + other.imaginary() * other.imaginary();
-		Algebraic {
-			real: (self.real() * other.real() + self.imaginary() * other.imaginary()) / denominator,
-			imaginary: (self.imaginary() * other.real() - self.real() * other.imaginary()) / denominator,
+		if self.is_pure_imaginary() {
+			Algebraic {
+				real: 0.0,
+				imaginary: self.imaginary() / other.imaginary(),
+			}
+		} else if self.is_pure_real() {
+			Algebraic {
+				real: self.real() / other.real(),
+				imaginary: 0.0,
+			}
+		} else {
+			let denominator: Real = other.real() * other.real() + other.imaginary() * other.imaginary();
+			Algebraic {
+				real: (self.real() * other.real() + self.imaginary() * other.imaginary()) / denominator,
+				imaginary: (self.imaginary() * other.real() - self.real() * other.imaginary()) / denominator,
+			}
 		}
 	}
 }

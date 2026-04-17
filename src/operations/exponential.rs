@@ -154,10 +154,14 @@ impl Exponentiation for Algebraic {
 
 	#[inline]
 	fn to_exp(self: &Self) -> Self::Result {
-		Polar::new(
-			self.imaginary(), 
-			self.real().exp(),
-		)
+		if self.is_zero() {
+			Polar { theta: 0.0, distance: 1.0 }
+		} else {
+			Polar::new(
+				self.imaginary(), 
+				self.real().exp(),
+			)
+		}
 	}
 }
 

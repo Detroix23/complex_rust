@@ -7,11 +7,11 @@ pub mod base;
 pub mod operations;
 
 pub use base::defaults::{Real, PI};
-pub use base::common::{Number, Complex, ToComplex};
+pub use base::common::{ZERO, ONE, I, Number, Complex, ToComplex};
 pub use base::algebraic::Algebraic;
 pub use base::polar::Polar;
 
-pub use operations::exponential::{Exponentiation, Power, Logarithm};
+pub use operations::{Exponentiation, Power, Logarithm, Trigonometry, Hyperbolic};
 
 #[cfg(test)]
 mod tests {
@@ -109,6 +109,18 @@ mod tests {
         assert_eq!(z1.log(z2),     Algebraic::new(0.1645471443538280, 0.7355172170217943));
         assert_eq!(z2.log(z2),     Algebraic::new(1.0, 0.0));
         assert_eq!(z1.log(z1),     Algebraic::new(1.0, 0.0));
+    }
+
+    #[test]
+    fn test_trigonometry1() {
+        assert_eq!(Algebraic::new(0.0, 0.0).sin().to_algebraic(), Algebraic::new(0.0, 0.0));
+        assert_eq!(Algebraic::new(0.0, 0.0).cos(), Algebraic::new(1.0, 0.0));
+        assert_eq!(Algebraic::new(PI / 2.0, 0.0).sin(), Algebraic::new(1.0, 0.0));
+        assert_eq!(Algebraic::new(PI / 2.0, 0.0).cos().to_algebraic(), Algebraic::new(0.0, 0.0));
+        assert_eq!(Algebraic::new(PI, 0.0).sin(), Algebraic::new(0.0, 0.0));
+        assert_eq!(Algebraic::new(PI, 0.0).cos(), Algebraic::new(-1.0, 0.0));
+        assert_eq!(Algebraic::new(-PI / 2.0, 0.0).sin(), Algebraic::new(-1.0, 0.0));
+        assert_eq!(Algebraic::new(-PI / 2.0, 0.0).cos(), Algebraic::new(0.0, 0.0));
     }
 
 }
